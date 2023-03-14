@@ -1,4 +1,4 @@
-package xclient
+package altclient
 
 import (
 	"net/http"
