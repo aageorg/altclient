@@ -2,6 +2,8 @@ package altclient
 
 import (
 	"net/http"
+	"encoding/json"
+	"bytes"
 )
 
 const ApiURL = "https://rdb.altlinux.org/api/export/branch_binary_packages/"
@@ -23,9 +25,6 @@ type Branch struct {
 	Package []map[string]*Package
 }
 
-type Diff struct {
-	Branch string
-}
 
 func NewBranch(br string) (*Branch, error) {
 	resp, err := http.Get(ApiURL + br)
@@ -34,7 +33,7 @@ func NewBranch(br string) (*Branch, error) {
 	}
 
 	defer resp.Body.Close()
-	br := Branch{Arch: make(map[string]int)}
+	br = Branch{Arch: make(map[string]int)}
 	dec := json.NewDecoder(bytes.NewReader(resp.Body))
 
 	for t, err := dec.Token(); t != "packages"; {
