@@ -123,7 +123,7 @@ func NewBranch(br string) (*Branch, error) {
 					if err != nil {
 						return nil, err
 					} else {
-						return nil, errors.New(t)
+						return nil, errors.New(t.(string))
 					}
 				}
 			}
