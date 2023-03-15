@@ -47,6 +47,7 @@ func NewBranch(br string) (*Branch, error) {
 			}
 			br.Length = int(l)
 		}
+		t, err = dec.Token()
 	}
 	dec.Token()
 	for dec.More() {
