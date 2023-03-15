@@ -35,7 +35,7 @@ br1, err := altclient.NewBranch("p10")
 pkgs := br1.GetMissing(br2, "aarch64") // returns a slice []altclient.Package
 ```
 
-Get a list of packages from the second branch with the older versions than in the first one
+Get a list of the packages from the second branch with the older versions than in the first one
 ```go
 br1, err := altclient.NewBranch("p10")
 ...
