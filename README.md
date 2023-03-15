@@ -10,41 +10,36 @@ Installation can be done with a normal `go get`:
 $ go get github.com/aageorg/altclient
 ```
 
-The only useful type is Branch. It represents structure of specified repository and contains unexported fields
+Type Branch represents a structure of the specified repository and contains unexported fields
 
-#### func NewBranch(branch_name string) *Branch, error
-Returns a new branch object from the ALTRepo API. If cannot retrieve a list of packages, returns error
-
+Creation of a new branch object from the ALTRepo API. 
 ```go
+// Returns *altclient.Branch. If cannot retrieve a list of packages, returns error
 br1, err := altclient.NewBranch("p10")
 br2, err := altclient.NewBranch("p9")
 ```
-
-#### func (*Branch) GetArchs() []string
-Returns a list of supported architectures
+How to get a list of supporting architectures:
 ```go
 br1, err := altclient.NewBranch("p10")
 ...
-archs := br1.GetArchs()
+archs := br1.GetArchs() // Returns a []string slice
+
 for _, a := range archs {
     fmt.Println(a)
 }
 ```
-
-#### func (*Branch) GetMissing(br *Branch, arch string) []Package
-Returns a list of the packages, which are presenting in the first branch but missing from the second one
+Get a list of the packages, which are presenting in the first branch but missing from the second one
 ```go
 br1, err := altclient.NewBranch("p10")
 ...
-pkgs := br1.GetMissing(br2, "aarch64")
+pkgs := br1.GetMissing(br2, "aarch64") // returns a slice []altclient.Package
 ```
 
-#### func (*Branch) GetOutOfDate(br *Branch, arch string) []Package
-Returns a list of packages from the second branch with the older versions than in the first one
+Get a list of packages from the second branch with the older versions than in the first one
 ```go
 br1, err := altclient.NewBranch("p10")
 ...
-pkgs := br1.GetOutOfDate(br2, "aarch64") 
+pkgs := br1.GetOutOfDate(br2, "aarch64") // returns a slice []altclient.Package
 ```
 
 ## Issues and Contributing
