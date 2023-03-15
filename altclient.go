@@ -80,12 +80,12 @@ func (br *Branch) GetOutOfDate(br_to_compare *Branch, a string) ([]Package, erro
 		for name, _ := range br.packages[br.arch[a]] {
 			v1, err := version.NewVersion(br.packages[br.arch[a]][name].Version)
 			if err != nil {
-				return nil, err
+				continue
 			}
 			if _, ok := from_comparing[name]; ok {
 				v2, err := version.NewVersion(from_comparing[name].Version)
 				if err != nil {
-					return nil, err
+					continue
 				}
 				if v2.LessThan(v1) {
 					pkgs = append(pkgs, *from_comparing[name])
