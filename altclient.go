@@ -1,8 +1,9 @@
-package altclient
+// package altclient
+package main
 
 import (
-	"net/http"
 	"encoding/json"
+	"net/http"
 )
 
 const ApiURL = "https://rdb.altlinux.org/api/export/branch_binary_packages/"
@@ -19,10 +20,56 @@ type Package struct {
 }
 
 type Branch struct {
-	Length  int `json:"length"`
-	Arch    map[string]int
-	Packages []map[string]*Package
+	Name     string                `json:"-"`
+	Length   int                   `json:"length"`
+	Arch     map[string]int        `json:"-"`
+	Packages []map[string]*Package `json:"-"`
 }
+
+type Diff struct {
+	Branch            string
+	Missing          []Package
+	Redundant        []Package
+	OutOfDate        []Package
+}
+
+// Returns lists of supported architectures
+
+func (br *Branch) GetArchs() (archs []string) {
+	for key, _ := range br.Arch {
+		archs = append(archs, key)
+	}
+	return
+}
+
+// Returns list of packages with a specified archtecture
+
+func(br *Branch) getPackages(arch string) map[string]*Package {
+if _,ok:=br.Arch[arch]; !ok {
+return nil
+}
+return br.Packages[br.Arch[arch]]
+}
+
+// Returns list of the missing packages in comparing branch
+
+func (br *Branch) GetMissing(br_to_compare *Branch, arch string) ([]Package, error) {
+	from_comparing:= br_to_compare.getPackages(arch)
+	var pkgs []Package
+	if from_comparing == nil {
+		for name, _ := range br.Packages[br.Arch[arch]] {
+			pkgs = append(pkgs, *br.Packages[br.Arch[arch]][name])
+		}
+	} else {
+		for name, _ := range br.Packages[br.Arch[arch]] {
+			if _, ok := from_comparing[name]; !ok {
+				pkgs = append(pkgs, *br.Packages[br.Arch[arch]][name])
+			}
+		}
+	}
+	return pkgs, nil
+}
+
 
 
 func NewBranch(br string) (*Branch, error) {
@@ -32,7 +79,7 @@ func NewBranch(br string) (*Branch, error) {
 	}
 
 	defer resp.Body.Close()
-	branch := Branch{Arch: make(map[string]int)}
+	branch := Branch{Name: br, Arch: make(map[string]int)}
 	dec := json.NewDecoder(resp.Body)
 
 	for t, err := dec.Token(); t != "packages"; {
@@ -65,3 +112,6 @@ func NewBranch(br string) (*Branch, error) {
 	return &branch, nil
 }
 
+func main() {
+
+}
