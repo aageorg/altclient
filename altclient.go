@@ -35,15 +35,6 @@ type Branch struct {
 	packages []map[string]*Package `json:"-"`
 }
 
-
-
-type Diff struct {
-	Branch    string
-	Missing   []Package
-	Redundant []Package
-	OutOfDate []Package
-}
-
 // Returns lists of supported architectures
 
 func (br *Branch) GetArchs() (archs []string) {
