@@ -55,8 +55,11 @@ func NewBranch(br string) (*Branch, error) {
 		if err != nil {
 			return nil, err
 		}
-		br.Packages = append(br.Packages, map[string]*Package{pkg.Name: &pkg})
+		if _,ok:=br.Arch[pkg.Arch];!ok {
+		br.Packages = append(br.Packages, map[string]*Package{})
 		br.Arch[pkg.Arch] = len(br.Packages) - 1
+		}
+		br.Packages[br.Arch[pkg.Arch]][pkg.Name] = &pkg
 	}
 
 	return &br, nil
