@@ -22,7 +22,7 @@ type Package struct {
 type Branch struct {
 	Length  int `json:"length"`
 	Arch    map[string]int
-	Package []map[string]*Package
+	Packages []map[string]*Package
 }
 
 
@@ -33,8 +33,8 @@ func NewBranch(br string) (*Branch, error) {
 	}
 
 	defer resp.Body.Close()
-	br = Branch{Arch: make(map[string]int)}
-	dec := json.NewDecoder(bytes.NewReader(resp.Body))
+	branch := Branch{Arch: make(map[string]int)}
+	dec := json.NewDecoder(resp.Body)
 
 	for t, err := dec.Token(); t != "packages"; {
 		if err != nil {
@@ -45,7 +45,7 @@ func NewBranch(br string) (*Branch, error) {
 			if err != nil {
 				return nil, err
 			}
-			br.Length = int(l)
+			branch.Length = int(l.(float64))
 		}
 		t, err = dec.Token()
 	}
@@ -56,12 +56,13 @@ func NewBranch(br string) (*Branch, error) {
 		if err != nil {
 			return nil, err
 		}
-		if _,ok:=br.Arch[pkg.Arch];!ok {
-		br.Packages = append(br.Packages, map[string]*Package{})
-		br.Arch[pkg.Arch] = len(br.Packages) - 1
+		if _, ok := branch.Arch[pkg.Arch]; !ok {
+			branch.Packages = append(branch.Packages, map[string]*Package{})
+			branch.Arch[pkg.Arch] = len(branch.Packages) - 1
 		}
-		br.Packages[br.Arch[pkg.Arch]][pkg.Name] = &pkg
+		branch.Packages[branch.Arch[pkg.Arch]][pkg.Name] = &pkg
 	}
 
-	return &br, nil
+	return &branch, nil
 }
+
