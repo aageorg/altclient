@@ -12,7 +12,7 @@ $ go get github.com/aageorg/altclient
 
 The only useful type is Branch. It represents structure of specified repository and contains unexported fields
 
-####func NewBranch(branch_name string) *Branch, error
+#### func NewBranch(branch_name string) *Branch, error
 Returns a new branch object from the ALTRepo API. If cannot retrieve a list of packages, returns error
 
 ```go
@@ -20,7 +20,7 @@ br1, err := altclient.NewBranch("p10")
 br2, err := altclient.NewBranch("p9")
 ```
 
-####func (*Branch) GetArchs() []string
+#### func (*Branch) GetArchs() []string
 Returns a list of supported architectures
 ```go
 br1, err := altclient.NewBranch("p10")
@@ -31,7 +31,7 @@ for _, a := range archs {
 }
 ```
 
-####func (*Branch) GetMissing(br *Branch, arch string) []Package
+#### func (*Branch) GetMissing(br *Branch, arch string) []Package
 Returns a list of the packages, which are presenting in the first branch but missing from the second one
 ```go
 br1, err := altclient.NewBranch("p10")
@@ -39,7 +39,7 @@ br1, err := altclient.NewBranch("p10")
 pkgs := br1.GetMissing(br2, "aarch64")
 ```
 
-####func (*Branch) GetOutOfDate(br *Branch, arch string) []Package
+#### func (*Branch) GetOutOfDate(br *Branch, arch string) []Package
 Returns a list of packages from the second branch with the older versions than in the first one
 ```go
 br1, err := altclient.NewBranch("p10")
