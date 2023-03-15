@@ -1,7 +1,7 @@
 # Client for ALT Linux Repository API
 
 ## Dependencies
-alclient uses [go-version](http://github.com/hashicorp/go-version).
+altclient uses [go-version](http://github.com/hashicorp/go-version).
 library for parsing and comparing package versions.
 
 ## Installation and Usage
