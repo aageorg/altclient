@@ -125,7 +125,6 @@ func NewBranch(br string) (*Branch, error) {
 					} else {
 						return nil, errors.Error(t)
 					}
-
 				}
 			}
 		}
