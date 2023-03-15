@@ -114,7 +114,7 @@ func NewBranch(br string) (*Branch, error) {
 		if t == "validation_message" {
 			dec.Token()
 			for dec.More() {
-				t, err = dec.Token
+				t, err = dec.Token()
 				if err != nil {
 					return nil, err
 				}
@@ -123,7 +123,7 @@ func NewBranch(br string) (*Branch, error) {
 					if err != nil {
 						return nil, err
 					} else {
-						return nil, errors.Error(t)
+						return nil, errors.New(t)
 					}
 				}
 			}
