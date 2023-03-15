@@ -1,9 +1,9 @@
-// package altclient
-package main
+ package altclient
 
 import (
 	"encoding/json"
 	"net/http"
+	"github.com/hashicorp/go-version"
 )
 
 const ApiURL = "https://rdb.altlinux.org/api/export/branch_binary_packages/"
@@ -22,21 +22,21 @@ type Package struct {
 type Branch struct {
 	Name     string                `json:"-"`
 	Length   int                   `json:"length"`
-	Arch     map[string]int        `json:"-"`
-	Packages []map[string]*Package `json:"-"`
+	arch     map[string]int        `json:"-"`
+	packages []map[string]*Package `json:"-"`
 }
 
 type Diff struct {
-	Branch            string
-	Missing          []Package
-	Redundant        []Package
-	OutOfDate        []Package
+	Branch    string
+	Missing   []Package
+	Redundant []Package
+	OutOfDate []Package
 }
 
 // Returns lists of supported architectures
 
 func (br *Branch) GetArchs() (archs []string) {
-	for key, _ := range br.Arch {
+	for key, _ := range br.arch {
 		archs = append(archs, key)
 	}
 	return
@@ -44,33 +44,56 @@ func (br *Branch) GetArchs() (archs []string) {
 
 // Returns list of packages with a specified archtecture
 
-func(br *Branch) getPackages(arch string) map[string]*Package {
-if _,ok:=br.Arch[arch]; !ok {
-return nil
-}
-return br.Packages[br.Arch[arch]]
+func (br *Branch) getPackages(a string) map[string]*Package {
+	if _, ok := br.arch[a]; !ok {
+		return nil
+	}
+	return br.packages[br.arch[a]]
 }
 
-// Returns list of the missing packages in comparing branch
+// Returns list of out of date packages in comparing branch
 
-func (br *Branch) GetMissing(br_to_compare *Branch, arch string) ([]Package, error) {
-	from_comparing:= br_to_compare.getPackages(arch)
+func (br *Branch) GetMissing(br_to_compare *Branch, a string) []Package {
+	from_comparing := br_to_compare.getPackages(a)
 	var pkgs []Package
 	if from_comparing == nil {
-		for name, _ := range br.Packages[br.Arch[arch]] {
-			pkgs = append(pkgs, *br.Packages[br.Arch[arch]][name])
+		for name, _ := range br.packages[br.arch[a]] {
+			pkgs = append(pkgs, *br.packages[br.arch[a]][name])
 		}
 	} else {
-		for name, _ := range br.Packages[br.Arch[arch]] {
+		for name, _ := range br.packages[br.arch[a]] {
 			if _, ok := from_comparing[name]; !ok {
-				pkgs = append(pkgs, *br.Packages[br.Arch[arch]][name])
+				pkgs = append(pkgs, *br.packages[br.arch[a]][name])
+			}
+		}
+	}
+	return pkgs
+}
+
+func (br *Branch) GetOutOfDate(br_to_compare *Branch, a string) ([]Package, error) {
+	from_comparing := br_to_compare.getPackages(a)
+	var pkgs []Package
+	if from_comparing == nil {
+		return pkgs, nil
+	} else {
+		for name, _ := range br.packages[br.arch[a]] {
+			v1, err := version.NewVersion(br.packages[br.arch[a]][name].Version)
+			if err != nil {
+				return nil, err
+			}
+			if _, ok := from_comparing[name]; ok {
+				v2, err := version.NewVersion(from_comparing[name].Version)
+				if err != nil {
+					return nil, err
+				}
+				if v2.LessThan(v1) {
+					pkgs = append(pkgs, *from_comparing[name])
+				}
 			}
 		}
 	}
 	return pkgs, nil
 }
-
-
 
 func NewBranch(br string) (*Branch, error) {
 	resp, err := http.Get(ApiURL + br)
@@ -79,7 +102,7 @@ func NewBranch(br string) (*Branch, error) {
 	}
 
 	defer resp.Body.Close()
-	branch := Branch{Name: br, Arch: make(map[string]int)}
+	branch := Branch{Name: br, arch: make(map[string]int)}
 	dec := json.NewDecoder(resp.Body)
 
 	for t, err := dec.Token(); t != "packages"; {
@@ -102,16 +125,12 @@ func NewBranch(br string) (*Branch, error) {
 		if err != nil {
 			return nil, err
 		}
-		if _, ok := branch.Arch[pkg.Arch]; !ok {
-			branch.Packages = append(branch.Packages, map[string]*Package{})
-			branch.Arch[pkg.Arch] = len(branch.Packages) - 1
+		if _, ok := branch.arch[pkg.Arch]; !ok {
+			branch.packages = append(branch.packages, map[string]*Package{})
+			branch.arch[pkg.Arch] = len(branch.packages) - 1
 		}
-		branch.Packages[branch.Arch[pkg.Arch]][pkg.Name] = &pkg
+		branch.packages[branch.arch[pkg.Arch]][pkg.Name] = &pkg
 	}
 
 	return &branch, nil
-}
-
-func main() {
-
 }
