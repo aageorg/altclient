@@ -3,7 +3,6 @@ package altclient
 import (
 	"net/http"
 	"encoding/json"
-	"bytes"
 )
 
 const ApiURL = "https://rdb.altlinux.org/api/export/branch_binary_packages/"
