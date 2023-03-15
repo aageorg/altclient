@@ -1,9 +1,10 @@
- package altclient
+package altclient
 
 import (
 	"encoding/json"
-	"net/http"
+	"errors"
 	"github.com/hashicorp/go-version"
+	"net/http"
 )
 
 const ApiURL = "https://rdb.altlinux.org/api/export/branch_binary_packages/"
@@ -108,6 +109,25 @@ func NewBranch(br string) (*Branch, error) {
 	for t, err := dec.Token(); t != "packages"; {
 		if err != nil {
 			return nil, err
+		}
+
+		if t == "validation_message" {
+			dec.Token()
+			for dec.More() {
+				t, err = dec.Token
+				if err != nil {
+					return nil, err
+				}
+				if t == "message" {
+					t, err = dec.Token()
+					if err != nil {
+						return nil, err
+					} else {
+						return nil, errors.Error(t)
+					}
+
+				}
+			}
 		}
 		if t == "length" {
 			l, err := dec.Token()
