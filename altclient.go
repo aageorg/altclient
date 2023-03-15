@@ -23,9 +23,19 @@ type Package struct {
 type Branch struct {
 	Name     string                `json:"-"`
 	Length   int                   `json:"length"`
+
+// Map where key is an architecture name (e.g. "aarch64"),
+// value is an index of the corresponding map in packages slice
+
 	arch     map[string]int        `json:"-"`
+
+// Slice of maps with packages combined by name of architecture.
+// The key is a package name, the value - pointer to a Package object
+
 	packages []map[string]*Package `json:"-"`
 }
+
+
 
 type Diff struct {
 	Branch    string
@@ -52,7 +62,7 @@ func (br *Branch) getPackages(a string) map[string]*Package {
 	return br.packages[br.arch[a]]
 }
 
-// Returns list of out of date packages in comparing branch
+// Returns list of out of missing packages in comparing branch
 
 func (br *Branch) GetMissing(br_to_compare *Branch, a string) []Package {
 	from_comparing := br_to_compare.getPackages(a)
@@ -71,11 +81,13 @@ func (br *Branch) GetMissing(br_to_compare *Branch, a string) []Package {
 	return pkgs
 }
 
-func (br *Branch) GetOutOfDate(br_to_compare *Branch, a string) ([]Package, error) {
+// Returns list of out of date packages in comparing branch
+
+func (br *Branch) GetOutOfDate(br_to_compare *Branch, a string) []Package {
 	from_comparing := br_to_compare.getPackages(a)
 	var pkgs []Package
 	if from_comparing == nil {
-		return pkgs, nil
+		return pkgs
 	} else {
 		for name, _ := range br.packages[br.arch[a]] {
 			v1, err := version.NewVersion(br.packages[br.arch[a]][name].Version)
@@ -93,8 +105,10 @@ func (br *Branch) GetOutOfDate(br_to_compare *Branch, a string) ([]Package, erro
 			}
 		}
 	}
-	return pkgs, nil
+	return pkgs
 }
+
+// returns a pointer to a new Branch object
 
 func NewBranch(br string) (*Branch, error) {
 	resp, err := http.Get(ApiURL + br)
@@ -113,20 +127,21 @@ func NewBranch(br string) (*Branch, error) {
 
 		if t == "validation_message" {
 			dec.Token()
+			t, err = dec.Token()
+			if err != nil {
+				return nil, err
+			}
+			var message string
+
+			message = t.(string)
 			for dec.More() {
 				t, err = dec.Token()
 				if err != nil {
 					return nil, err
 				}
-				if t == "message" {
-					t, err = dec.Token()
-					if err != nil {
-						return nil, err
-					} else {
-						return nil, errors.New(t.(string))
-					}
-				}
+				message += ", " + t.(string)
 			}
+			return nil, errors.New(message)
 		}
 		if t == "length" {
 			l, err := dec.Token()
@@ -150,6 +165,5 @@ func NewBranch(br string) (*Branch, error) {
 		}
 		branch.packages[branch.arch[pkg.Arch]][pkg.Name] = &pkg
 	}
-
 	return &branch, nil
 }
